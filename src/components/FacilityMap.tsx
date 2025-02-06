@@ -109,6 +109,15 @@ export function FacilityMap({ parks, toilets }: FacilityMapProps) {
                 <Popup>
                   <h3>{park.name}</h3>
                   <p>{park.address}</p>
+                  <a
+                    href={`https://docs.google.com/forms/d/e/1FAIpQLSfAM_EddPsoFw4jmLZ9RQ9SKOWbWNnLdpIABZCh6FiTXJRsQw/viewform?usp=pp_url&entry.1276758939=${
+                      "park_" + park.id
+                    }`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    この公園の情報を提供する
+                  </a>
                 </Popup>
               </Marker>
             ))}
@@ -123,6 +132,16 @@ export function FacilityMap({ parks, toilets }: FacilityMapProps) {
                 <Popup>
                   <h3>{toilet.name}</h3>
                   <p>{toilet.address}</p>
+                  <a
+                    href={`https://docs.google.com/forms/d/e/1FAIpQLSfAM_EddPsoFw4jmLZ9RQ9SKOWbWNnLdpIABZCh6FiTXJRsQw/viewform?usp=pp_url&entry.1276758939=${
+                      "toilet_" + toilet.no
+                    }`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    このトイレの情報を提供する
+                  </a>
+                  <br />
                   <button
                     onClick={() => togglePopupDetails(toilet.no)}
                     className={styles.detailsButton}
