@@ -16,24 +16,24 @@
 }
 
 /* Leafletのデフォルトスタイルを上書き */
-:global(.leaflet-container) {
+.mapContainer :global(.leaflet-container) {
   font-family: inherit;
 }
 
-:global(.leaflet-popup-content-wrapper) {
+.mapContainer :global(.leaflet-popup-content-wrapper) {
   border-radius: 8px;
 }
 
-:global(.leaflet-popup-content) {
+.mapContainer :global(.leaflet-popup-content) {
   margin: 12px;
 }
 
-:global(.leaflet-popup-content h3) {
+.mapContainer :global(.leaflet-popup-content h3) {
   margin: 0 0 8px 0;
   font-size: 1.1rem;
 }
 
-:global(.leaflet-popup-content p) {
+.mapContainer :global(.leaflet-popup-content p) {
   margin: 4px 0;
   font-size: 0.9rem;
 }
