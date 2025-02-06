@@ -1,0 +1,71 @@
+.mapSection {
+  width: 100vw;
+  margin-left: calc((100% - 100vw) / 2);
+  margin-right: calc((100% - 100vw) / 2);
+  grid-column: 1 / -1;
+}
+
+.mapContainer {
+  height: 600px;
+  width: 100%;
+  border-radius: 0;
+  overflow: hidden;
+  border-left: none;
+  border-right: none;
+  border-color: #ccc;
+}
+
+/* Leafletのデフォルトスタイルを上書き */
+:global(.leaflet-container) {
+  font-family: inherit;
+}
+
+:global(.leaflet-popup-content-wrapper) {
+  border-radius: 8px;
+}
+
+:global(.leaflet-popup-content) {
+  margin: 12px;
+}
+
+:global(.leaflet-popup-content h3) {
+  margin: 0 0 8px 0;
+  font-size: 1.1rem;
+}
+
+:global(.leaflet-popup-content p) {
+  margin: 4px 0;
+  font-size: 0.9rem;
+}
+
+.mapHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+  width: 100%;
+  max-width: 1200px;
+  margin-left: auto;
+  margin-right: auto;
+  padding: 0;
+}
+
+.legend {
+  display: flex;
+  gap: 1.5rem;
+  padding: 0.5rem 1rem;
+  background: white;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+}
+
+.legendItem {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.9rem;
+}
+
+.legendItem img {
+  object-fit: contain;
+}
