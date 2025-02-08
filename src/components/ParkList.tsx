@@ -1,5 +1,5 @@
 import { Park } from "@/types/park";
-import styles from "@/app/page.module.css";
+import { Card, CardContent, Typography, Box } from "@mui/material";
 
 /**
  * 公園リストのプロパティ
@@ -14,16 +14,24 @@ type ParkListProps = {
  */
 export function ParkList({ parks }: ParkListProps) {
   return (
-    <section>
-      <h2>公園一覧 ({parks.length}件)</h2>
-      <div className={styles.list}>
+    <Box component="section" sx={{ width: "100%" }}>
+      <Typography variant="h4" component="h2" gutterBottom>
+        公園一覧 ({parks.length}件)
+      </Typography>
+      <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
         {parks.map((park) => (
-          <div key={park.id} className={styles.card}>
-            <h3>{park.name}</h3>
-            <p>住所: {park.address}</p>
-          </div>
+          <Card key={park.id}>
+            <CardContent>
+              <Typography variant="h6" component="h3" gutterBottom>
+                {park.name}
+              </Typography>
+              <Typography variant="body2" color="text.secondary">
+                住所: {park.address}
+              </Typography>
+            </CardContent>
+          </Card>
         ))}
-      </div>
-    </section>
+      </Box>
+    </Box>
   );
 }
