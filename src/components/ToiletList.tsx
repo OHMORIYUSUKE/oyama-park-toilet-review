@@ -44,7 +44,7 @@ export function ToiletList({ toilets }: ToiletListProps) {
       </Typography>
       <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
         {toilets.map((toilet) => (
-          <Card key={toilet.no}>
+          <Card key={toilet.id}>
             <CardContent>
               <Typography variant="h6" component="h3" gutterBottom>
                 {toilet.name}
@@ -53,14 +53,14 @@ export function ToiletList({ toilets }: ToiletListProps) {
                 {toilet.address}
               </Typography>
               <Button
-                onClick={() => toggleDetails(toilet.no)}
+                onClick={() => toggleDetails(toilet.id)}
                 variant="outlined"
                 size="small"
                 sx={{ mt: 1 }}
               >
-                {expandedIds.has(toilet.no) ? "詳細を閉じる" : "詳細を見る"}
+                {expandedIds.has(toilet.id) ? "詳細を閉じる" : "詳細を見る"}
               </Button>
-              <Collapse in={expandedIds.has(toilet.no)}>
+              <Collapse in={expandedIds.has(toilet.id)}>
                 <Box sx={{ mt: 2 }}>
                   <Divider sx={{ my: 2 }} />
                   <Typography variant="h6" gutterBottom>

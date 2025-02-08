@@ -5,7 +5,7 @@ export type Availability = "有" | "無";
 
 export type Toilet = {
   /** トイレ番号 */
-  no: string;
+  id: string;
   /** トイレ名称 */
   name: string;
   /** 住所 */

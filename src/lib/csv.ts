@@ -54,7 +54,7 @@ export async function getToiletData(): Promise<Toilet[]> {
     .map((row) => {
       const columns = row.split(",");
       return {
-        no: columns[1],
+        id: columns[1],
         name: columns[4],
         address: columns[7],
         latitude: columns[10],

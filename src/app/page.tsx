@@ -1,10 +1,7 @@
 import styles from "./page.module.css";
 import { getParkData, getToiletData } from "@/lib/csv";
-import { ParkList } from "@/components/ParkList";
-import { ToiletList } from "@/components/ToiletList";
 import { MapSection } from "@/components/MapSection";
-import { FeedbackList } from "@/components/FeedbackList";
-import { getFeedbackData } from "@/lib/feedback";
+import { getFeedbackData, transformFeedbackData } from "@/lib/feedback";
 
 /**
  * トップページのコンポーネント
@@ -16,16 +13,17 @@ export default async function Home() {
     getFeedbackData(),
   ]);
 
+  // フィードバックデータを事前に変換
+  const transformedFeedbacks = transformFeedbackData(feedbackResponse);
+
   return (
     <div className={styles.page}>
       <main className={styles.main}>
-        <h1>小山市の公園・トイレマップ</h1>
-        <MapSection parks={parks} toilets={toilets} />
-        <FeedbackList feedbacks={feedbackResponse.records} />
-        <div className={styles.grid}>
-          <ParkList parks={parks} />
-          <ToiletList toilets={toilets} />
-        </div>
+        <MapSection
+          parks={parks}
+          toilets={toilets}
+          feedbacks={transformedFeedbacks}
+        />
       </main>
     </div>
   );

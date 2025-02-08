@@ -12,8 +12,10 @@ type FeedbackListProps = {
 export function FeedbackList({ feedbacks }: FeedbackListProps) {
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
 
-  const handleImageClick = (imageUrl: string) => {
-    setSelectedImage(imageUrl);
+  const handleImageClick = (imageUrl: string | null) => {
+    if (imageUrl) {
+      setSelectedImage(imageUrl);
+    }
   };
 
   const handleCloseModal = () => {
@@ -27,24 +29,21 @@ export function FeedbackList({ feedbacks }: FeedbackListProps) {
       </Typography>
       <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
         {feedbacks.map((feedback) => (
-          <Card key={feedback.タイムスタンプ}>
+          <Card key={feedback.timestamp}>
             <CardContent>
               <Box
                 sx={{ display: "flex", justifyContent: "space-between", mb: 1 }}
               >
                 <Typography variant="h6" component="h3">
-                  {feedback["どのような情報ですか？"]}
+                  {feedback.feedbackType} {feedback.facilityType}
+                  {feedback.facilityId}
                 </Typography>
                 <Typography variant="body2" color="text.secondary">
-                  {new Date(feedback.タイムスタンプ).toLocaleDateString(
-                    "ja-JP"
-                  )}
+                  {new Date(feedback.timestamp).toLocaleDateString("ja-JP")}
                 </Typography>
               </Box>
-              <Typography variant="body1">
-                {feedback["詳細について教えてください"]}
-              </Typography>
-              {feedback["画像があればアプロードしてください"] && (
+              <Typography variant="body1">{feedback.details}</Typography>
+              {feedback.imageUrl && (
                 <div
                   style={{
                     position: "relative",
@@ -53,13 +52,11 @@ export function FeedbackList({ feedbacks }: FeedbackListProps) {
                     cursor: "pointer",
                   }}
                   onClick={() =>
-                    handleImageClick(
-                      feedback["画像があればアプロードしてください"]
-                    )
+                    feedback.imageUrl && handleImageClick(feedback.imageUrl)
                   }
                 >
                   <Image
-                    src={feedback["画像があればアプロードしてください"]}
+                    src={feedback.imageUrl}
                     alt="報告画像"
                     fill
                     style={{ objectFit: "cover", borderRadius: "4px" }}
