@@ -1,9 +1,10 @@
 import { Coordinates } from "@/types/common";
+import { LatLngTuple } from "leaflet";
 
 /**
  * 座標を数値配列に変換
  */
-export const toLatLng = (coords: Coordinates): [number, number] => [
+export const toLatLng = (coords: Coordinates): LatLngTuple => [
   Number(coords.latitude),
   Number(coords.longitude),
 ];

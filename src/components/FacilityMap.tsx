@@ -84,7 +84,7 @@ export function FacilityMap({ parks, toilets, feedbacks }: FacilityMapProps) {
   );
 
   // 初期中心座標を設定
-  const initialCenter = useMemo(() => {
+  const initialCenter = useMemo((): [number, number] => {
     const facilityType = searchParams.get("type");
     const facilityId = searchParams.get("id");
 
@@ -92,14 +92,14 @@ export function FacilityMap({ parks, toilets, feedbacks }: FacilityMapProps) {
       if (facilityType === "park") {
         const park = parks.find((p) => p.id === facilityId);
         if (park) {
-          const point = toLatLng(park);
-          return [point[0], point[1] + 0.06]; // 経度を少し右にずらす
+          const [lat, lng] = toLatLng(park);
+          return [lat, lng + 0.06];
         }
       } else if (facilityType === "toilet") {
         const toilet = toilets.find((t) => t.id === facilityId);
         if (toilet) {
-          const point = toLatLng(toilet);
-          return [point[0], point[1] + 0.06]; // 経度を少し右にずらす
+          const [lat, lng] = toLatLng(toilet);
+          return [lat, lng + 0.06];
         }
       }
     }
@@ -156,14 +156,6 @@ export function FacilityMap({ parks, toilets, feedbacks }: FacilityMapProps) {
     shadowUrl: "/images/marker-shadow.png",
     shadowSize: [74, 74],
   });
-
-  // サイドバーの表示部分を修正
-  const facilityFeedbacks = useMemo(() => {
-    if (!selectedFacility) return [];
-    return feedbacks.filter(
-      (feedback) => feedback.facilityId === selectedFacility.data.id
-    );
-  }, [feedbacks, selectedFacility]);
 
   const getFacilityFeedbacks = (facilityId: string) => {
     // feedbacksを日付の降順（新しい順）にソート
