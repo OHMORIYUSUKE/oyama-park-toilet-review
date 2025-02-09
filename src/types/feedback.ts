@@ -3,7 +3,7 @@ export type Feedback = {
   facilityType: "公園" | "トイレ";
   feedbackType: string;
   details: string;
-  imageUrl: string | null;
+  imageUrls: string[];
   facilityId: string;
 };
 

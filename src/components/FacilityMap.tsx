@@ -2,7 +2,13 @@
 
 import { Park } from "@/types/park";
 import { Toilet } from "@/types/toilet";
-import { MapContainer, TileLayer, Marker, Tooltip } from "react-leaflet";
+import {
+  MapContainer,
+  TileLayer,
+  Marker,
+  Tooltip,
+  ZoomControl,
+} from "react-leaflet";
 import "leaflet/dist/leaflet.css";
 import styles from "./FacilityMap.module.css";
 import { useEffect, useState, useMemo } from "react";
@@ -22,6 +28,15 @@ import { Feedback } from "@/types/feedback";
 import LocationOnIcon from "@mui/icons-material/LocationOn";
 import WcIcon from "@mui/icons-material/Wc";
 import AccessibleIcon from "@mui/icons-material/Accessible";
+import { useRouter, useSearchParams } from "next/navigation";
+import ShareIcon from "@mui/icons-material/Share";
+import { Snackbar } from "@mui/material";
+import { Modal } from "@mui/material";
+import { Map as LeafletMap } from "leaflet";
+
+interface LeafletElement extends HTMLElement {
+  _leaflet_map?: LeafletMap;
+}
 
 /**
  * マップコンポーネントのプロパティ
@@ -49,10 +64,14 @@ type SelectedFacility =
  * 施設マップを表示するコンポーネント
  */
 export function FacilityMap({ parks, toilets, feedbacks }: FacilityMapProps) {
+  const router = useRouter();
+  const searchParams = useSearchParams();
   const [isMounted, setIsMounted] = useState(false);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [selectedFacility, setSelectedFacility] =
     useState<SelectedFacility | null>(null);
+  const [snackbarOpen, setSnackbarOpen] = useState(false);
+  const [selectedImage, setSelectedImage] = useState<string | null>(null);
 
   // マーカーの位置を事前計算
   const parkMarkers = useMemo(
@@ -64,6 +83,65 @@ export function FacilityMap({ parks, toilets, feedbacks }: FacilityMapProps) {
     [parks]
   );
 
+  // 初期中心座標を設定
+  const initialCenter = useMemo(() => {
+    const facilityType = searchParams.get("type");
+    const facilityId = searchParams.get("id");
+
+    if (facilityType && facilityId) {
+      if (facilityType === "park") {
+        const park = parks.find((p) => p.id === facilityId);
+        if (park) {
+          const point = toLatLng(park);
+          return [point[0], point[1] + 0.06]; // 経度を少し右にずらす
+        }
+      } else if (facilityType === "toilet") {
+        const toilet = toilets.find((t) => t.id === facilityId);
+        if (toilet) {
+          const point = toLatLng(toilet);
+          return [point[0], point[1] + 0.06]; // 経度を少し右にずらす
+        }
+      }
+    }
+    return OYAMA_CENTER;
+  }, [searchParams, parks, toilets]);
+
+  // URLクエリパラメータから初期選択状態を設定
+  useEffect(() => {
+    const facilityType = searchParams.get("type");
+    const facilityId = searchParams.get("id");
+
+    if (facilityType && facilityId && isMounted) {
+      if (facilityType === "park") {
+        const park = parks.find((p) => p.id === facilityId);
+        if (park) {
+          setSelectedFacility({ type: "park", data: park });
+          setDrawerOpen(true);
+          // マップの表示位置を調整（中央に表示）
+          const mapElement = document.querySelector(".leaflet-container");
+          const map = (mapElement as LeafletElement)?._leaflet_map;
+          if (map) {
+            const point = toLatLng(park);
+            map.setView(point, DEFAULT_ZOOM);
+          }
+        }
+      } else if (facilityType === "toilet") {
+        const toilet = toilets.find((t) => t.id === facilityId);
+        if (toilet) {
+          setSelectedFacility({ type: "toilet", data: toilet });
+          setDrawerOpen(true);
+          // マップの表示位置を調整（中央に表示）
+          const mapElement = document.querySelector(".leaflet-container");
+          const map = (mapElement as LeafletElement)?._leaflet_map;
+          if (map) {
+            const point = toLatLng(toilet);
+            map.setView(point, DEFAULT_ZOOM);
+          }
+        }
+      }
+    }
+  }, [searchParams, parks, toilets, isMounted]);
+
   useEffect(() => {
     setIsMounted(true);
   }, []);
@@ -72,11 +150,11 @@ export function FacilityMap({ parks, toilets, feedbacks }: FacilityMapProps) {
   const selectedIcon = new L.Icon({
     iconUrl:
       "https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-red.png",
-    iconSize: [25, 41],
-    iconAnchor: [12, 41],
+    iconSize: [45, 74],
+    iconAnchor: [22, 74],
     popupAnchor: [1, -34],
     shadowUrl: "/images/marker-shadow.png",
-    shadowSize: [41, 41],
+    shadowSize: [74, 74],
   });
 
   // サイドバーの表示部分を修正
@@ -86,6 +164,79 @@ export function FacilityMap({ parks, toilets, feedbacks }: FacilityMapProps) {
       (feedback) => feedback.facilityId === selectedFacility.data.id
     );
   }, [feedbacks, selectedFacility]);
+
+  const getFacilityFeedbacks = (facilityId: string) => {
+    // feedbacksを日付の降順（新しい順）にソート
+    return feedbacks
+      .filter((feedback) => feedback.facilityId === facilityId)
+      .sort((a, b) => {
+        // timestampを比較して降順にソート
+        return (
+          new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
+        );
+      });
+  };
+
+  const handleFacilitySelect = <T extends "park" | "toilet">(
+    type: T,
+    data: T extends "park" ? Park : Toilet
+  ) => {
+    setSelectedFacility({
+      type,
+      data: data as T extends "park" ? Park : Toilet,
+    } as SelectedFacility);
+    setDrawerOpen(true);
+
+    // URLのクエリパラメータを更新
+    const params = new URLSearchParams(searchParams.toString());
+    params.set("type", type);
+    params.set("id", data.id);
+    router.push(`?${params.toString()}`, { scroll: false });
+
+    // マップの表示位置を調整（中央に表示）
+    const mapElement = document.querySelector(".leaflet-container");
+    const map = (mapElement as LeafletElement)?._leaflet_map;
+    if (map) {
+      const point = toLatLng(data);
+      map.setView(point, DEFAULT_ZOOM);
+    }
+  };
+
+  const handleCloseDrawer = () => {
+    setDrawerOpen(false);
+    setSelectedFacility(null);
+
+    // クエリパラメータをクリア
+    const params = new URLSearchParams(searchParams.toString());
+    params.delete("type");
+    params.delete("id");
+    router.push(`?${params.toString()}`, { scroll: false });
+  };
+
+  const handleCopyInfo = async () => {
+    if (!selectedFacility) return;
+
+    const facility = selectedFacility.data;
+    const facilityType = selectedFacility.type === "park" ? "公園" : "トイレ";
+
+    const textToCopy = [
+      `${facility.name}（${facilityType}）`,
+      `住所：${facility.address}`,
+      ``, // 空行を入れて見やすく
+      `地図：${window.location.href}`,
+    ].join("\n");
+
+    try {
+      await navigator.clipboard.writeText(textToCopy);
+      setSnackbarOpen(true);
+    } catch (error) {
+      console.error("コピーに失敗しました:", error);
+    }
+  };
+
+  const handleImageClick = (url: string) => {
+    setSelectedImage(url);
+  };
 
   if (!isMounted) {
     return null;
@@ -122,11 +273,14 @@ export function FacilityMap({ parks, toilets, feedbacks }: FacilityMapProps) {
 
       <div className={styles.mapContainer}>
         <MapContainer
-          center={OYAMA_CENTER}
+          center={initialCenter}
           zoom={DEFAULT_ZOOM}
           scrollWheelZoom={true}
           style={{ height: "100%", width: "100%" }}
+          className={styles.mapContainer}
+          zoomControl={false}
         >
+          <ZoomControl position="bottomright" />
           <TileLayer
             attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
             url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
@@ -144,10 +298,7 @@ export function FacilityMap({ parks, toilets, feedbacks }: FacilityMapProps) {
                   : MARKER_ICONS.PARK
               }
               eventHandlers={{
-                click: () => {
-                  setSelectedFacility({ type: "park", data: park as Park });
-                  setDrawerOpen(true);
-                },
+                click: () => handleFacilitySelect("park", park),
               }}
             >
               <Tooltip
@@ -173,13 +324,7 @@ export function FacilityMap({ parks, toilets, feedbacks }: FacilityMapProps) {
                   : MARKER_ICONS.TOILET
               }
               eventHandlers={{
-                click: () => {
-                  setSelectedFacility({
-                    type: "toilet",
-                    data: toilet as Toilet,
-                  });
-                  setDrawerOpen(true);
-                },
+                click: () => handleFacilitySelect("toilet", toilet),
               }}
             >
               <Tooltip
@@ -198,13 +343,15 @@ export function FacilityMap({ parks, toilets, feedbacks }: FacilityMapProps) {
       <Drawer
         anchor="right"
         open={drawerOpen}
-        onClose={() => setDrawerOpen(false)}
-        PaperProps={{
-          sx: {
-            width: { xs: "100%", sm: 400 },
-            bgcolor: "rgba(255, 255, 255, 0.95)",
-            backdropFilter: "blur(10px)",
-            boxShadow: "0 0 20px rgba(0,0,0,0.1)",
+        onClose={handleCloseDrawer}
+        sx={{
+          "& .MuiDrawer-paper": {
+            width: {
+              xs: "100%", // モバイルでは全幅
+              sm: "600px", // タブレット以上で500px
+              md: "700px", // PC以上で600px
+            },
+            boxSizing: "border-box",
           },
         }}
       >
@@ -224,7 +371,7 @@ export function FacilityMap({ parks, toilets, feedbacks }: FacilityMapProps) {
             }}
           >
             <IconButton
-              onClick={() => setDrawerOpen(false)}
+              onClick={handleCloseDrawer}
               sx={{
                 position: "absolute",
                 right: 8,
@@ -274,6 +421,26 @@ export function FacilityMap({ parks, toilets, feedbacks }: FacilityMapProps) {
                   <LocationOnIcon sx={{ fontSize: 20 }} />
                   {selectedFacility.data.address}
                 </Typography>
+
+                {/* 施設名の下にコピーボタンを追加 */}
+                <Box
+                  sx={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 1,
+                    mt: 2,
+                    mb: 3,
+                  }}
+                >
+                  <Button
+                    variant="outlined"
+                    size="medium"
+                    startIcon={<ShareIcon />}
+                    onClick={handleCopyInfo}
+                  >
+                    この施設の情報をコピー
+                  </Button>
+                </Box>
 
                 {selectedFacility.type === "toilet" && (
                   <Box
@@ -577,7 +744,7 @@ export function FacilityMap({ parks, toilets, feedbacks }: FacilityMapProps) {
                   </Box>
                 )}
 
-                {facilityFeedbacks.length > 0 && (
+                {getFacilityFeedbacks(selectedFacility.data.id).length > 0 && (
                   <Box sx={{ mt: 2 }}>
                     <Typography
                       variant="h6"
@@ -593,48 +760,79 @@ export function FacilityMap({ parks, toilets, feedbacks }: FacilityMapProps) {
                         gap: 2,
                       }}
                     >
-                      {facilityFeedbacks.map((feedback, index) => (
-                        <Box
-                          key={index}
-                          sx={{
-                            p: 2,
-                            bgcolor: "rgba(0,0,0,0.02)",
-                            borderRadius: 2,
-                            border: "1px solid rgba(0,0,0,0.05)",
-                          }}
-                        >
-                          <Typography variant="caption" color="text.secondary">
-                            {new Date(feedback.timestamp).toLocaleString()}
-                          </Typography>
-                          <Typography
-                            variant="subtitle1"
-                            sx={{ fontWeight: "bold" }}
+                      {getFacilityFeedbacks(selectedFacility.data.id).map(
+                        (feedback, index) => (
+                          <Box
+                            key={index}
+                            sx={{
+                              p: 2,
+                              bgcolor: "rgba(0,0,0,0.02)",
+                              borderRadius: 2,
+                              border: "1px solid rgba(0,0,0,0.05)",
+                            }}
                           >
-                            {feedback.feedbackType}
-                          </Typography>
-                          <Typography variant="body2">
-                            {feedback.details}
-                          </Typography>
-                          {feedback.imageUrl && (
-                            <Box
-                              sx={{
-                                mt: 1,
-                                position: "relative",
-                                height: "200px",
-                                borderRadius: 2,
-                                overflow: "hidden",
-                              }}
+                            <Typography
+                              variant="caption"
+                              color="text.secondary"
                             >
-                              <Image
-                                src={feedback.imageUrl}
-                                alt="フィードバック画像"
-                                fill
-                                style={{ objectFit: "cover" }}
-                              />
-                            </Box>
-                          )}
-                        </Box>
-                      ))}
+                              {new Date(feedback.timestamp).toLocaleString(
+                                "ja-JP",
+                                {
+                                  year: "numeric",
+                                  month: "long",
+                                  day: "numeric",
+                                  hour: "2-digit",
+                                  minute: "2-digit",
+                                }
+                              )}
+                            </Typography>
+                            <Typography
+                              variant="subtitle1"
+                              sx={{ fontWeight: "bold" }}
+                            >
+                              {feedback.feedbackType}
+                            </Typography>
+                            <Typography variant="body2">
+                              {feedback.details}
+                            </Typography>
+                            {feedback.imageUrls &&
+                              feedback.imageUrls.length > 0 && (
+                                <Box
+                                  sx={{
+                                    mt: 1,
+                                    display: "grid",
+                                    gap: 1,
+                                    gridTemplateColumns:
+                                      feedback.imageUrls.length === 1
+                                        ? "1fr"
+                                        : "repeat(auto-fit, minmax(120px, 1fr))",
+                                    "& > div": {
+                                      aspectRatio: "1",
+                                      position: "relative",
+                                      borderRadius: 2,
+                                      overflow: "hidden",
+                                    },
+                                  }}
+                                >
+                                  {feedback.imageUrls.map((url, i) => (
+                                    <div key={i}>
+                                      <Image
+                                        src={url}
+                                        alt={`フィードバック画像 ${i + 1}`}
+                                        fill
+                                        style={{
+                                          objectFit: "cover",
+                                          cursor: "pointer",
+                                        }}
+                                        onClick={() => handleImageClick(url)}
+                                      />
+                                    </div>
+                                  ))}
+                                </Box>
+                              )}
+                          </Box>
+                        )
+                      )}
                     </Box>
                   </Box>
                 )}
@@ -672,6 +870,61 @@ export function FacilityMap({ parks, toilets, feedbacks }: FacilityMapProps) {
           </Box>
         </Box>
       </Drawer>
+
+      {/* コピー成功時の通知 */}
+      <Snackbar
+        open={snackbarOpen}
+        autoHideDuration={3000}
+        onClose={() => setSnackbarOpen(false)}
+        message="施設情報をクリップボードにコピーしました"
+        anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
+      />
+
+      {/* 画像モーダル */}
+      <Modal
+        open={!!selectedImage}
+        onClose={() => setSelectedImage(null)}
+        sx={{
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+        }}
+      >
+        <Box
+          sx={{
+            position: "relative",
+            width: "90vw",
+            height: "90vh",
+            bgcolor: "background.paper",
+            p: 1,
+            borderRadius: 1,
+          }}
+        >
+          <IconButton
+            onClick={() => setSelectedImage(null)}
+            sx={{
+              position: "absolute",
+              right: 8,
+              top: 8,
+              bgcolor: "rgba(0,0,0,0.1)",
+              zIndex: 1,
+              "&:hover": {
+                bgcolor: "rgba(0,0,0,0.2)",
+              },
+            }}
+          >
+            <CloseIcon />
+          </IconButton>
+          {selectedImage && (
+            <Image
+              src={selectedImage}
+              alt="拡大画像"
+              fill
+              style={{ objectFit: "contain" }}
+            />
+          )}
+        </Box>
+      </Modal>
     </>
   );
 }

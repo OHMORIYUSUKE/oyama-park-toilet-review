@@ -1,7 +1,7 @@
 import { Feedback, FeedbackResponse } from "../types/feedback";
 
 const FEEDBACK_API_URL =
-  "https://script.google.com/macros/s/AKfycbzW1mNVDhmpHyYGad1AhIAH3wzC1kfXu95vH8UNIUzOAtk1PwhpXaMy5_LreHQUAmIdbQ/exec";
+  "https://script.google.com/macros/s/AKfycbytSmpWUqgGjmrW73KPnex7MdtfGRCwGlXSwTx-P6I6KmLmAFiRZz6CgDF3UYvBVkqOaQ/exec";
 
 export async function getFeedbackData(): Promise<FeedbackResponse> {
   try {
@@ -37,7 +37,11 @@ export function transformFeedbackData(data: FeedbackResponse): Feedback[] {
         record["【自動で入力されます。変更しないでください】施設タイプ"],
       feedbackType: record["どのような情報ですか？"],
       details: record["詳細について教えてください"],
-      imageUrl: record["画像があればアプロードしてください"] || null,
+      imageUrls: Array.isArray(record["画像があればアプロードしてください"])
+        ? record["画像があればアプロードしてください"]
+        : record["画像があればアプロードしてください"]
+        ? [record["画像があればアプロードしてください"]]
+        : [],
       facilityId: record["【自動で入力されます。変更しないでください】施設ID"],
     }));
 }

@@ -50,46 +50,50 @@
 }
 
 .header {
-  margin-left: 3rem;
   position: fixed;
   top: 4px;
   left: 4px;
   z-index: 1000;
   background: white;
-  padding: 4px 8px;
+  padding: 4px 12px;
   border-radius: 4px;
   box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
-  height: 60px;
+  max-width: calc(100% - 100px);
 }
 
 .header h1 {
   margin: 0;
-  font-size: 2rem;
-  font-weight: 500;
-  line-height: 1.6;
+  font-size: 1.2rem;
+  font-weight: 800;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .legend {
-  margin-left: 3rem;
   position: fixed;
-  top: 70px;
+  top: 50px;
   left: 4px;
   z-index: 1000;
   background: white;
-  padding: 4px 6px;
+  padding: 8px 12px;
   border-radius: 4px;
   box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
+  font-size: 1rem;
 }
 
 .legendItem {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
-  font-size: 1rem;
+  gap: 8px;
+  padding: 4px 0;
 }
 
 .legendItem img {
+  width: 24px;
+  height: 24px;
   object-fit: contain;
+  flex-shrink: 0;
 }
 
 .sidebar {
