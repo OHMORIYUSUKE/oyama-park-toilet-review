@@ -1,7 +1,10 @@
 import { Feedback, FeedbackResponse } from "../types/feedback";
 
-const FEEDBACK_API_URL =
-  "https://script.google.com/macros/s/AKfycbytSmpWUqgGjmrW73KPnex7MdtfGRCwGlXSwTx-P6I6KmLmAFiRZz6CgDF3UYvBVkqOaQ/exec";
+const FEEDBACK_API_URL = process.env.NEXT_PUBLIC_FEEDBACK_API_URL as string;
+
+if (!FEEDBACK_API_URL) {
+  throw new Error("NEXT_PUBLIC_FEEDBACK_API_URL is not defined");
+}
 
 export async function getFeedbackData(): Promise<FeedbackResponse> {
   try {
