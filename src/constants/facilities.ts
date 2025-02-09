@@ -6,13 +6,14 @@ export const FACILITY_TYPES = {
   TOILET: "toilet",
 } as const;
 
+/** 施設タイプのラベル */
 export const FACILITY_LABELS = {
-  [FACILITY_TYPES.PARK]: "公園",
-  [FACILITY_TYPES.TOILET]: "公衆トイレ",
+  park: "公園",
+  toilet: "トイレ",
 } as const;
 
-// 設備の有無の表示形式
+// 設備の有無の表示テキスト
 export const AVAILABILITY_DISPLAY: Record<Availability, string> = {
-  有: "⭕",
-  無: "❌",
+  有: "あり",
+  無: "なし",
 } as const;

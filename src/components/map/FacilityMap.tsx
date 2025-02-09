@@ -13,6 +13,12 @@ import { MapLegend } from "./MapLegend";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useMapState } from "@/hooks/useMapState";
 
+/**
+ * 施設マップを表示するメインコンポーネント
+ * @param parks - 公園データの配列
+ * @param toilets - トイレデータの配列
+ * @param feedbacks - フィードバックデータの配列
+ */
 export function FacilityMap({ parks, toilets, feedbacks }: FacilityMapProps) {
   const router = useRouter();
   const searchParams = useSearchParams();

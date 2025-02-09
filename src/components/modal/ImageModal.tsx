@@ -2,11 +2,17 @@ import { Modal, Box, IconButton } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
 import Image from "next/image";
 
+/** 画像モーダルのプロパティ */
 type ImageModalProps = {
+  /** 表示する画像のURL */
   imageUrl: string | null;
+  /** モーダルを閉じる時のコールバック */
   onClose: () => void;
 };
 
+/**
+ * 画像を拡大表示するモーダルコンポーネント
+ */
 export function ImageModal({ imageUrl, onClose }: ImageModalProps) {
   return (
     <Modal

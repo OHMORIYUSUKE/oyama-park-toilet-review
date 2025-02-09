@@ -3,10 +3,15 @@ import Image from "next/image";
 import { useState } from "react";
 import { Feedback } from "@/types/feedback";
 
+/** フィードバックリストのプロパティ */
 type FeedbackListProps = {
+  /** フィードバックデータの配列 */
   feedbacks: Feedback[];
 };
 
+/**
+ * 施設に対するフィードバックを一覧表示するコンポーネント
+ */
 export function FeedbackList({ feedbacks }: FeedbackListProps) {
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
 

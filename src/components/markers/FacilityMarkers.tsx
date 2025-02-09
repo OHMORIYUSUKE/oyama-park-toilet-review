@@ -5,13 +5,21 @@ import { Park } from "@/types/park";
 import { Toilet } from "@/types/toilet";
 import { SelectedFacility, FacilityType } from "@/types/map";
 
+/** マーカーコンポーネントのプロパティ */
 type FacilityMarkersProps = {
+  /** 公園データの配列 */
   parks: Park[];
+  /** トイレデータの配列 */
   toilets: Toilet[];
+  /** 選択中の施設 */
   selectedFacility: SelectedFacility | null;
+  /** 施設選択時のコールバック */
   onSelect: (type: FacilityType, data: Park | Toilet) => void;
 };
 
+/**
+ * 地図上の施設マーカーを表示するコンポーネント
+ */
 export function FacilityMarkers({
   parks,
   toilets,

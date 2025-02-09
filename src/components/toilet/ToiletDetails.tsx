@@ -2,10 +2,15 @@ import { Toilet } from "@/types/toilet";
 import { AVAILABILITY_DISPLAY } from "@/constants/facilities";
 import { Box, Typography } from "@mui/material";
 
+/** トイレ詳細のプロパティ */
 type ToiletDetailsProps = {
+  /** トイレの情報 */
   toilet: Toilet;
 };
 
+/**
+ * トイレの詳細情報を表示するコンポーネント
+ */
 export function ToiletDetails({ toilet }: ToiletDetailsProps) {
   return (
     <Box sx={{ mt: 2 }}>

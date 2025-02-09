@@ -7,13 +7,21 @@ import { ShareButton } from "../ShareButton";
 import { SelectedFacility } from "@/types/map";
 import { Feedback } from "@/types/feedback";
 
+/** 施設詳細ドロワーのプロパティ */
 type FacilityDrawerProps = {
+  /** ドロワーの開閉状態 */
   open: boolean;
+  /** 選択中の施設 */
   facility: SelectedFacility | null;
+  /** フィードバックデータの配列 */
   feedbacks: Feedback[];
+  /** ドロワーを閉じる時のコールバック */
   onClose: () => void;
 };
 
+/**
+ * 施設の詳細情報を表示するドロワーコンポーネント
+ */
 export function FacilityDrawer({
   open,
   facility,

@@ -1,11 +1,18 @@
 import { Feedback, FeedbackResponse } from "../types/feedback";
 
+/**
+ * フィードバックデータを取得するためのAPIのURL
+ */
 const FEEDBACK_API_URL = process.env.NEXT_PUBLIC_FEEDBACK_API_URL as string;
 
 if (!FEEDBACK_API_URL) {
   throw new Error("NEXT_PUBLIC_FEEDBACK_API_URL is not defined");
 }
 
+/**
+ * フィードバックデータをAPIから取得する
+ * @returns フィードバックデータのレスポンス
+ */
 export async function getFeedbackData(): Promise<FeedbackResponse> {
   try {
     const response = await fetch(FEEDBACK_API_URL, {
@@ -22,6 +29,9 @@ export async function getFeedbackData(): Promise<FeedbackResponse> {
   }
 }
 
+/**
+ * Google Formsのレスポンスの型定義
+ */
 type RawFeedbackRecord = {
   タイムスタンプ: string;
   "【自動で入力されます。変更しないでください】施設タイプ": "公園" | "トイレ";
@@ -31,6 +41,11 @@ type RawFeedbackRecord = {
   "【自動で入力されます。変更しないでください】施設ID": string;
 };
 
+/**
+ * フィードバックデータを整形する
+ * @param data - APIから取得した生のフィードバックデータ
+ * @returns 整形済みのフィードバックデータ配列
+ */
 export function transformFeedbackData(data: FeedbackResponse): Feedback[] {
   return data.records
     .filter((record: RawFeedbackRecord) => record.タイムスタンプ)
