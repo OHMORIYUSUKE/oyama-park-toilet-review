@@ -3,44 +3,30 @@
 import { Park } from "@/types/park";
 import { Toilet } from "@/types/toilet";
 import { Feedback } from "@/types/feedback";
-import {
-  MapContainer,
-  TileLayer,
-  Marker,
-  Tooltip,
-  ZoomControl,
-} from "react-leaflet";
+import { MapContainer, TileLayer, ZoomControl } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
 import styles from "./FacilityMap.module.css";
-import { useEffect, useState, useMemo } from "react";
-import {
-  OYAMA_CENTER,
-  MARKER_ICONS,
-  MARKER_IMAGES,
-  DEFAULT_ZOOM,
-} from "@/constants/map";
-import Image from "next/image";
+import { useEffect, useState, useMemo, useCallback } from "react";
+import { OYAMA_CENTER, DEFAULT_ZOOM } from "@/constants/map";
 import { toLatLng } from "@/utils/map";
-import { Modal, Snackbar, IconButton, Box } from "@mui/material";
-import CloseIcon from "@mui/icons-material/Close";
+import { Snackbar } from "@mui/material";
 import L from "leaflet";
 import { useRouter, useSearchParams } from "next/navigation";
-import { FacilityDrawer } from "./FacilityDrawer";
 import { Map as LeafletMap } from "leaflet";
+import { FacilityDrawer } from "./FacilityDrawer";
+import { ImageModal } from "./ImageModal";
+import { FacilityLegend } from "./FacilityLegend";
+import { FacilityHeader } from "./FacilityHeader";
+import { FacilityMarker } from "./FacilityMarker";
+import { GitHubLink } from "./GitHubLink";
 
 interface LeafletElement extends HTMLElement {
   _leaflet_map?: LeafletMap;
 }
 
-/**
- * マップコンポーネントのプロパティ
- */
 type FacilityMapProps = {
-  /** 公園データの配列 */
   parks: Park[];
-  /** トイレデータの配列 */
   toilets: Toilet[];
-  /** フィードバックデータの配列 */
   feedbacks: Feedback[];
 };
 
@@ -54,9 +40,6 @@ type SelectedFacility =
       data: Toilet;
     };
 
-/**
- * 施設マップを表示するコンポーネント
- */
 export function FacilityMap({ parks, toilets, feedbacks }: FacilityMapProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -67,7 +50,6 @@ export function FacilityMap({ parks, toilets, feedbacks }: FacilityMapProps) {
   const [snackbarOpen, setSnackbarOpen] = useState(false);
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
 
-  // マーカーの位置を事前計算
   const parkMarkers = useMemo(
     () =>
       parks.map((park) => ({
@@ -77,7 +59,6 @@ export function FacilityMap({ parks, toilets, feedbacks }: FacilityMapProps) {
     [parks]
   );
 
-  // 初期中心座標を設定
   const initialCenter = useMemo((): [number, number] => {
     const facilityType = searchParams.get("type");
     const facilityId = searchParams.get("id");
@@ -100,47 +81,47 @@ export function FacilityMap({ parks, toilets, feedbacks }: FacilityMapProps) {
     return OYAMA_CENTER;
   }, [searchParams, parks, toilets]);
 
-  // URLクエリパラメータから初期選択状態を設定
+  const moveMapToFacility = useCallback((facility: Park | Toilet) => {
+    const mapElement = document.querySelector(".leaflet-container");
+    const map = (mapElement as LeafletElement)?._leaflet_map;
+    if (map) {
+      const point = toLatLng(facility);
+      map.setView(point, DEFAULT_ZOOM);
+    }
+  }, []);
+
+  const handleFacilitySelect = useCallback(
+    <T extends "park" | "toilet">(
+      type: T,
+      data: T extends "park" ? Park : Toilet
+    ) => {
+      setSelectedFacility({ type, data } as SelectedFacility);
+      setDrawerOpen(true);
+      moveMapToFacility(data);
+    },
+    [moveMapToFacility]
+  );
+
   useEffect(() => {
-    const facilityType = searchParams.get("type");
+    const facilityType = searchParams.get("type") as "park" | "toilet" | null;
     const facilityId = searchParams.get("id");
 
     if (facilityType && facilityId && isMounted) {
-      if (facilityType === "park") {
-        const park = parks.find((p) => p.id === facilityId);
-        if (park) {
-          setSelectedFacility({ type: "park", data: park });
-          setDrawerOpen(true);
-          // マップの表示位置を調整（中央に表示）
-          const mapElement = document.querySelector(".leaflet-container");
-          const map = (mapElement as LeafletElement)?._leaflet_map;
-          if (map) {
-            const point = toLatLng(park);
-            map.setView(point, DEFAULT_ZOOM);
-          }
-        }
-      } else if (facilityType === "toilet") {
-        const toilet = toilets.find((t) => t.id === facilityId);
-        if (toilet) {
-          setSelectedFacility({ type: "toilet", data: toilet });
-          setDrawerOpen(true);
-          // マップの表示位置を調整（中央に表示）
-          const mapElement = document.querySelector(".leaflet-container");
-          const map = (mapElement as LeafletElement)?._leaflet_map;
-          if (map) {
-            const point = toLatLng(toilet);
-            map.setView(point, DEFAULT_ZOOM);
-          }
-        }
+      const facility =
+        facilityType === "park"
+          ? parks.find((p) => p.id === facilityId)
+          : toilets.find((t) => t.id === facilityId);
+
+      if (facility) {
+        handleFacilitySelect(facilityType, facility);
       }
     }
-  }, [searchParams, parks, toilets, isMounted]);
+  }, [searchParams, isMounted, handleFacilitySelect, parks, toilets]);
 
   useEffect(() => {
     setIsMounted(true);
   }, []);
 
-  // カスタムアイコンの設定を追加
   const selectedIcon = new L.Icon({
     iconUrl:
       "https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-red.png",
@@ -151,36 +132,10 @@ export function FacilityMap({ parks, toilets, feedbacks }: FacilityMapProps) {
     shadowSize: [74, 74],
   });
 
-  const handleFacilitySelect = <T extends "park" | "toilet">(
-    type: T,
-    data: T extends "park" ? Park : Toilet
-  ) => {
-    setSelectedFacility({
-      type,
-      data: data as T extends "park" ? Park : Toilet,
-    } as SelectedFacility);
-    setDrawerOpen(true);
-
-    // URLのクエリパラメータを更新
-    const params = new URLSearchParams(searchParams.toString());
-    params.set("type", type);
-    params.set("id", data.id);
-    router.push(`?${params.toString()}`, { scroll: false });
-
-    // マップの表示位置を調整（中央に表示）
-    const mapElement = document.querySelector(".leaflet-container");
-    const map = (mapElement as LeafletElement)?._leaflet_map;
-    if (map) {
-      const point = toLatLng(data);
-      map.setView(point, DEFAULT_ZOOM);
-    }
-  };
-
   const handleCloseDrawer = () => {
     setDrawerOpen(false);
     setSelectedFacility(null);
 
-    // クエリパラメータをクリア
     const params = new URLSearchParams(searchParams.toString());
     params.delete("type");
     params.delete("id");
@@ -196,7 +151,7 @@ export function FacilityMap({ parks, toilets, feedbacks }: FacilityMapProps) {
     const textToCopy = [
       `${facility.name}（${facilityType}）`,
       `住所：${facility.address}`,
-      ``, // 空行を入れて見やすく
+      ``,
       `地図：${window.location.href}`,
     ].join("\n");
 
@@ -209,37 +164,29 @@ export function FacilityMap({ parks, toilets, feedbacks }: FacilityMapProps) {
   };
 
   if (!isMounted) {
-    return null;
+    return (
+      <div
+        style={{
+          position: "fixed",
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+          backgroundColor: "rgba(0, 0, 0, 0.5)",
+        }}
+      >
+        <p>ロード中...</p>
+      </div>
+    );
   }
 
   return (
     <>
-      <div className={styles.header}>
-        <h1>小山市の公園・トイレマップ</h1>
-      </div>
-
-      <div className={styles.legend}>
-        <div className={styles.legendItem}>
-          <Image
-            src={MARKER_IMAGES.PARK}
-            alt="公園マーカー"
-            width={20}
-            height={33}
-            unoptimized
-          />
-          <span>公園 ({parks.length}件)</span>
-        </div>
-        <div className={styles.legendItem}>
-          <Image
-            src={MARKER_IMAGES.TOILET}
-            alt="トイレマーカー"
-            width={20}
-            height={33}
-            unoptimized
-          />
-          <span>公衆トイレ ({toilets.length}件)</span>
-        </div>
-      </div>
+      <FacilityHeader />
+      <FacilityLegend parksCount={parks.length} toiletsCount={toilets.length} />
 
       <div className={styles.mapContainer}>
         <MapContainer
@@ -256,58 +203,35 @@ export function FacilityMap({ parks, toilets, feedbacks }: FacilityMapProps) {
             url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
           />
 
-          {/* 公園のマーカー */}
           {parkMarkers.map((park) => (
-            <Marker
+            <FacilityMarker
               key={park.id}
-              position={park.position}
-              icon={
+              type="park"
+              data={park}
+              isSelected={
                 selectedFacility?.type === "park" &&
                 selectedFacility.data.id === park.id
-                  ? selectedIcon
-                  : MARKER_ICONS.PARK
               }
-              eventHandlers={{
-                click: () => handleFacilitySelect("park", park),
-              }}
-            >
-              <Tooltip
-                permanent={false}
-                direction="top"
-                offset={[0, -40]}
-                className={styles.tooltip}
-              >
-                {park.name}
-              </Tooltip>
-            </Marker>
+              selectedIcon={selectedIcon}
+              onClick={handleFacilitySelect}
+            />
           ))}
 
-          {/* トイレのマーカー */}
           {toilets.map((toilet) => (
-            <Marker
+            <FacilityMarker
               key={toilet.id}
-              position={[Number(toilet.latitude), Number(toilet.longitude)]}
-              icon={
+              type="toilet"
+              data={toilet}
+              isSelected={
                 selectedFacility?.type === "toilet" &&
                 selectedFacility.data.id === toilet.id
-                  ? selectedIcon
-                  : MARKER_ICONS.TOILET
               }
-              eventHandlers={{
-                click: () => handleFacilitySelect("toilet", toilet),
-              }}
-            >
-              <Tooltip
-                permanent={false}
-                direction="top"
-                offset={[0, -40]}
-                className={styles.tooltip}
-              >
-                {toilet.name}
-              </Tooltip>
-            </Marker>
+              selectedIcon={selectedIcon}
+              onClick={handleFacilitySelect}
+            />
           ))}
         </MapContainer>
+        <GitHubLink />
       </div>
 
       <FacilityDrawer
@@ -319,7 +243,6 @@ export function FacilityMap({ parks, toilets, feedbacks }: FacilityMapProps) {
         onImageClick={setSelectedImage}
       />
 
-      {/* コピー成功時の通知 */}
       <Snackbar
         open={snackbarOpen}
         autoHideDuration={3000}
@@ -328,51 +251,10 @@ export function FacilityMap({ parks, toilets, feedbacks }: FacilityMapProps) {
         anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
       />
 
-      {/* 画像モーダル */}
-      <Modal
-        open={!!selectedImage}
+      <ImageModal
+        imageUrl={selectedImage}
         onClose={() => setSelectedImage(null)}
-        sx={{
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-        }}
-      >
-        <Box
-          sx={{
-            position: "relative",
-            width: "90vw",
-            height: "90vh",
-            bgcolor: "background.paper",
-            p: 1,
-            borderRadius: 1,
-          }}
-        >
-          <IconButton
-            onClick={() => setSelectedImage(null)}
-            sx={{
-              position: "absolute",
-              right: 8,
-              top: 8,
-              bgcolor: "rgba(0,0,0,0.1)",
-              zIndex: 1,
-              "&:hover": {
-                bgcolor: "rgba(0,0,0,0.2)",
-              },
-            }}
-          >
-            <CloseIcon />
-          </IconButton>
-          {selectedImage && (
-            <Image
-              src={selectedImage}
-              alt="拡大画像"
-              fill
-              style={{ objectFit: "contain" }}
-            />
-          )}
-        </Box>
-      </Modal>
+      />
     </>
   );
 }

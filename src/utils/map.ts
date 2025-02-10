@@ -1,13 +1,15 @@
 import { Coordinates } from "@/types/common";
-import { LatLngTuple } from "leaflet";
+import { Park } from "@/types/park";
+import { Toilet } from "@/types/toilet";
 
 /**
  * 座標を数値配列に変換
  */
-export const toLatLng = (coords: Coordinates): LatLngTuple => [
-  Number(coords.latitude),
-  Number(coords.longitude),
-];
+export function toLatLng(
+  facility: Park | (Toilet & { latitude: string; longitude: string })
+): [number, number] {
+  return [Number(facility.latitude), Number(facility.longitude)];
+}
 
 /**
  * 座標が有効かどうかを判定
