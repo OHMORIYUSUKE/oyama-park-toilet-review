@@ -7,7 +7,6 @@ import { useEffect, useState, useMemo } from "react";
 import { OYAMA_CENTER, DEFAULT_ZOOM } from "@/constants/map";
 import { toLatLng } from "@/utils/map";
 import { FacilityMapProps } from "@/types/map";
-import { FacilityDrawer } from "../drawer/FacilityDrawer";
 import { FacilityMarkers } from "../markers/FacilityMarkers";
 import { MapLegend } from "./MapLegend";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -19,16 +18,14 @@ import { useMapState } from "@/hooks/useMapState";
  * @param toilets - トイレデータの配列
  * @param feedbacks - フィードバックデータの配列
  */
-export function FacilityMap({ parks, toilets, feedbacks }: FacilityMapProps) {
+export function FacilityMap({ parks, toilets }: FacilityMapProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [isMounted, setIsMounted] = useState(false);
-  const {
-    selectedFacility,
-    drawerOpen,
-    handleFacilitySelect,
-    handleCloseDrawer,
-  } = useMapState({ router, searchParams });
+  const { selectedFacility, handleFacilitySelect } = useMapState({
+    router,
+    searchParams,
+  });
 
   const initialCenter = useMemo((): [number, number] => {
     const facilityType = searchParams.get("type");
@@ -84,13 +81,6 @@ export function FacilityMap({ parks, toilets, feedbacks }: FacilityMapProps) {
           />
         </MapContainer>
       </div>
-
-      <FacilityDrawer
-        open={drawerOpen}
-        facility={selectedFacility}
-        feedbacks={feedbacks}
-        onClose={handleCloseDrawer}
-      />
     </>
   );
 }

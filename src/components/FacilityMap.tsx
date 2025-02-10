@@ -763,28 +763,40 @@ export function FacilityMap({ parks, toilets, feedbacks }: FacilityMapProps) {
                               border: "1px solid rgba(0,0,0,0.05)",
                             }}
                           >
-                            <Typography
-                              variant="caption"
-                              color="text.secondary"
+                            <Box
+                              sx={{
+                                display: "flex",
+                                justifyContent: "space-between",
+                                alignItems: "center",
+                                mb: 2,
+                              }}
                             >
-                              {new Date(feedback.timestamp).toLocaleString(
-                                "ja-JP",
-                                {
-                                  year: "numeric",
-                                  month: "long",
-                                  day: "numeric",
-                                  hour: "2-digit",
-                                  minute: "2-digit",
-                                }
-                              )}
-                            </Typography>
+                              <Typography
+                                variant="h5"
+                                sx={{ fontWeight: "bold" }}
+                              >
+                                {feedback.feedbackType}
+                              </Typography>
+                              <Typography
+                                variant="caption"
+                                color="text.secondary"
+                              >
+                                {new Date(feedback.timestamp).toLocaleString(
+                                  "ja-JP",
+                                  {
+                                    year: "numeric",
+                                    month: "long",
+                                    day: "numeric",
+                                    hour: "2-digit",
+                                    minute: "2-digit",
+                                  }
+                                )}
+                              </Typography>
+                            </Box>
                             <Typography
-                              variant="subtitle1"
-                              sx={{ fontWeight: "bold" }}
+                              variant="body1"
+                              sx={{ mb: 3, fontSize: "large" }}
                             >
-                              {feedback.feedbackType}
-                            </Typography>
-                            <Typography variant="body2">
                               {feedback.details}
                             </Typography>
                             {feedback.imageUrls &&
@@ -794,10 +806,7 @@ export function FacilityMap({ parks, toilets, feedbacks }: FacilityMapProps) {
                                     mt: 1,
                                     display: "grid",
                                     gap: 1,
-                                    gridTemplateColumns:
-                                      feedback.imageUrls.length === 1
-                                        ? "1fr"
-                                        : "repeat(auto-fit, minmax(120px, 1fr))",
+                                    gridTemplateColumns: "repeat(3, 1fr)",
                                     "& > div": {
                                       aspectRatio: "1",
                                       position: "relative",

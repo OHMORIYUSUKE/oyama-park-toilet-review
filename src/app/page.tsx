@@ -1,4 +1,3 @@
-import styles from "./page.module.css";
 import { getParkData, getToiletData } from "@/lib/csv";
 import { MapSection } from "@/components/MapSection";
 import { getFeedbackData, transformFeedbackData } from "@/lib/feedback";
@@ -17,8 +16,8 @@ export default async function Home() {
   const transformedFeedbacks = transformFeedbackData(feedbackResponse);
 
   return (
-    <div className={styles.page}>
-      <main className={styles.main}>
+    <div>
+      <main>
         <MapSection
           parks={parks}
           toilets={toilets}
