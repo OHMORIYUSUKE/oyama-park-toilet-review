@@ -54,7 +54,8 @@ npm run dev
 
 ## ライセンス
 
-このプロジェクトは MIT ライセンスの下で公開されています。
+/data ディレクトリ以外は MIT ライセンスの下で公開されています。
+だたし、/data 以下のデータは [小山市のオープンデータ](https://www.city.oyama.tochigi.jp/opendata.php) から取得しており、そのデータの利用については [小山市のオープンデータ利用規約](https://www.city.oyama.tochigi.jp/opendata.php?mode=kiyaku) ([CC-BY 4.0](https://creativecommons.org/licenses/by/4.0/deed.ja))に従っています。
 
 ## コントリビューション
 
