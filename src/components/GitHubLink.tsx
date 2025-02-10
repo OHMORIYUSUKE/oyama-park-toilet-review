@@ -1,9 +1,10 @@
 import { FC } from "react";
+import { APP_CONFIG } from "@/constants/app";
 
 export const GitHubLink: FC = () => {
   return (
     <a
-      href="https://github.com/OHMORIYUSUKE/oyama-park-toilet-review"
+      href={APP_CONFIG.GITHUB_URL}
       target="_blank"
       rel="noopener noreferrer"
       style={{

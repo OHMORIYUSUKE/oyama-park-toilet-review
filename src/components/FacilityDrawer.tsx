@@ -8,6 +8,7 @@ import { FeedbackList } from "./FeedbackList";
 import { Park } from "@/types/park";
 import { Toilet } from "@/types/toilet";
 import { Feedback } from "@/types/feedback";
+import { createFeedbackUrl } from "@/constants/app";
 
 type SelectedFacility =
   | {
@@ -28,6 +29,16 @@ interface FacilityDrawerProps {
   onImageClick: (url: string) => void;
 }
 
+/**
+ * 施設の詳細情報を表示するドロワーコンポーネント
+ * @param props - コンポーネントのプロパティ
+ * @param props.open - ドロワーの表示状態
+ * @param props.selectedFacility - 選択された施設の情報
+ * @param props.onClose - ドロワーを閉じる際のコールバック
+ * @param props.feedbacks - 施設に関するフィードバック一覧
+ * @param props.onCopyInfo - 施設情報をコピーする際のコールバック
+ * @param props.onImageClick - 画像クリック時のコールバック
+ */
 export function FacilityDrawer({
   open,
   selectedFacility,
@@ -36,6 +47,11 @@ export function FacilityDrawer({
   onCopyInfo,
   onImageClick,
 }: FacilityDrawerProps) {
+  /**
+   * 指定された施設IDに関連するフィードバックを取得し、時系列順にソート
+   * @param facilityId - 施設ID
+   * @returns ソートされたフィードバック配列
+   */
   const getFacilityFeedbacks = (facilityId: string) => {
     return feedbacks
       .filter((feedback) => feedback.facilityId === facilityId)
@@ -171,10 +187,17 @@ export function FacilityDrawer({
             variant="contained"
             fullWidth
             startIcon={<FeedbackIcon />}
-            href={`https://docs.google.com/forms/d/e/1FAIpQLSfAM_EddPsoFw4jmLZ9RQ9SKOWbWNnLdpIABZCh6FiTXJRsQw/viewform?usp=pp_url&entry.1276758939=${
-              selectedFacility?.type === "park" ? "公園" : "トイレ"
-            }&entry.653877169=${selectedFacility?.data.id}`}
+            href={
+              selectedFacility
+                ? createFeedbackUrl(
+                    selectedFacility.type,
+                    selectedFacility.data.id
+                  )
+                : "#"
+            }
             target="_blank"
+            rel="noopener noreferrer"
+            disabled={!selectedFacility}
             sx={{
               bgcolor: "#2196f3",
               "&:hover": {
