@@ -5,6 +5,8 @@ import { MARKER_ICONS } from "@/constants/map";
 import { Icon } from "leaflet";
 import styles from "./FacilityMap.module.css";
 import { toLatLng } from "@/utils/map";
+import { useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 
 interface FacilityMarkerProps<T extends "park" | "toilet"> {
   type: T;
@@ -21,6 +23,19 @@ export function FacilityMarker<T extends "park" | "toilet">({
   selectedIcon,
   onClick,
 }: FacilityMarkerProps<T>) {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+
+  const handleClick = () => {
+    onClick(type, data);
+
+    // URLを更新
+    const params = new URLSearchParams(searchParams.toString());
+    params.set("type", type);
+    params.set("id", data.id);
+    router.push(`?${params.toString()}`, { scroll: false });
+  };
+
   const position = (
     type === "park" ? toLatLng(data as Park) : toLatLng(data as Toilet)
   ) as [number, number];
@@ -35,7 +50,7 @@ export function FacilityMarker<T extends "park" | "toilet">({
           : MARKER_ICONS[type.toUpperCase() as "PARK" | "TOILET"]
       }
       eventHandlers={{
-        click: () => onClick(type, data),
+        click: handleClick,
       }}
     >
       <Tooltip
